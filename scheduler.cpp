@@ -29,7 +29,7 @@ int Scheduler::computeHyperperiod() const {
 void Scheduler::setPriority() {
     int numTasks = tasks_.size();
     int assigned = 0;
-    int priority = 1; // 1 is highest priority
+    int priority = tasks_.size();
 
     while (assigned < numTasks) {
         int shortestValue = INT_MAX;
@@ -46,7 +46,7 @@ void Scheduler::setPriority() {
         }
 
         if (shortestIndex != -1) {
-            tasks_[shortestIndex].priority = priority++;
+            tasks_[shortestIndex].priority = priority--;
             assigned++;
         }
         else {

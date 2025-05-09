@@ -1,5 +1,5 @@
-// // A program that can take a task set of any size and then run schedulability tests relating to scheduling algorithms including RM, DM, EDF, LST, PIP, OCPP, and ICPP.
-// // Then our program would return the results of the schedulability tests and a visual timeline displaying the tasks in a hyperperiod, like our homework.
+// // A program that can take a task set of any size and then run schedubility tests relating to scheduling algorithms including RM, DM, EDF, LST, PIP, OCPP, and ICPP.
+// // Then our program would return the results of the schedubility tests and a visual timeline displaying the tasks in a hyperperiod, like our homework.
 // // Also, deadlines can be arbitrary. Meaning that the deadline of a task can be greater than its period.
 // // For the resource sharing protocol PIP etc., you may assume they are used together with fixed priority scheduling.
 
@@ -124,7 +124,6 @@ public:
         cout << "Simulation complete.\n";
     }
 
-private:
     bool allTasksFinished() {
         return all_of(tasks.begin(), tasks.end(), [](const Job& t) { return t.isFinished; });
     }
