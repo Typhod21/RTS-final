@@ -80,15 +80,16 @@ TEST_CASE("Scheduler Tests LST") {
     scheduler.generateTimeline();
 }
 TEST_CASE("Scheduler Tests PIP") {
-	// id, release time, WCET, remaining ET, baseprio, currentprio, {id,duration,nested}
+	int numOfResources = 2;
+	// id, release time, WCET, priority, period, deadline, {id,duration}
     vector<Job> taskList = {
-        {"J1", 10, 4, 4, 5, 5, {{"S1", 2, false}}},
-        {"J2", 8, 3, 3, 4, 4, {{"S2", 1, false}}},
-        {"J3", 6, 3, 3, 3, 3, {{"S2", 1, false}}},
-        {"J4", 3, 7, 7, 2, 2, {{"S1", 4, false}, {"S2", 2, true}}},
-        {"J5", 0, 6, 6, 1, 1, {{"S2", 3, false}}}
+        {"J1", 10, 4, 5, 21, 21, {{"S1", 3, false}}},
+        {"J2", 8,  3, 4, 21, 21, {{"S2", 2, false}}},
+        {"J3", 6,  3, 3, 21, 21, {{"S1", 2, false}}},
+        {"J4", 3,  7, 2, 21, 21, {{"S1", 4, false}, {"S2", 2, true}}},
+        {"J5", 0,  6, 1, 21, 21, {{"S2", 3, false}}}
     };
 
-    Inheritance Inheritance(taskList);
+    Inheritance Inheritance(taskList, numOfResources);
     Inheritance.simulatePIP();
 }
