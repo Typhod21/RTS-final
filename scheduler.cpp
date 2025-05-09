@@ -2,6 +2,13 @@
 #include <numeric> // Add this include for std::lcm
 #include <algorithm>
 
+//graphics:
+#include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
+#include <SFML/System.hpp>
+#include <map>
+#include <vector>
+
 using namespace std;
 Scheduler::Scheduler() {
 	// Default constructor
@@ -175,6 +182,7 @@ void Scheduler::generateTimeline() {
     vector<int> remaining(tasks_.size(), 0);
     vector<int> nextRelease(tasks_.size(), 0);
     vector<int> nextDeadline(tasks_.size(), 0);
+    timeline.assign(hyperperiod, 0); //tracks the timeline for graphic printing 
 
     std::cout << "\nTimeline (0 to " << hyperperiod << "):\n";
 
@@ -226,14 +234,78 @@ void Scheduler::generateTimeline() {
 
         // Print which task runs
         if (runningTask != -1) {
+            timeline[t] = tasks_[runningTask].id; //record in timeline
             std::cout << "|T" << tasks_[runningTask].id;
             remaining[runningTask]--;
             previousTask = runningTask;
         } else {
+            timeline[t] = 0;//record in timeline
             std::cout << "|ID";
         }
     }
     std::cout << "|\n";
 
+    // print the timeline array
+    std::cout << "Timeline array:\n[ ";
+    for (int taskId : timeline) {
+        std::cout << taskId << " ";
+    }
+    std::cout << "]\n";
+
 
 }
+
+
+void Scheduler::displayTimelineGraphic() {
+    const int boxWidth = 20;  // width of each time unit
+    const int boxHeight = 50;
+    const int spacing = 2;
+    const int hyperperiod = timeline.size();
+    unsigned int width = static_cast<unsigned int>((boxWidth + spacing) * hyperperiod + 100);
+    unsigned int height = static_cast<unsigned int>(boxHeight + 100);
+
+    sf::VideoMode videoMode(width, height);
+    sf::RenderWindow window(videoMode, "Task Timeline", sf::Style::Titlebar | sf::Style::Close);
+
+    // Assign colors to tasks
+    std::map<int, sf::Color> taskColors;
+    taskColors[0] = sf::Color::Black; // Idle
+    int colorIndex = 0;
+    std::vector<sf::Color> colors = {
+        sf::Color::Red, sf::Color::Green, sf::Color::Blue,
+        sf::Color::Yellow, sf::Color::Magenta, sf::Color::Cyan,
+        sf::Color(255, 165, 0),   // Orange
+        sf::Color(128, 0, 128),   // Purple
+        sf::Color(0, 255, 127),   // Spring green
+        sf::Color(255, 192, 203)  // Pink
+    };
+
+    for (const auto& task : tasks_) {
+        if (taskColors.count(task.id) == 0) {
+            taskColors[task.id] = colors[colorIndex++ % colors.size()];
+        }
+    }
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        window.clear(sf::Color::White);
+
+        // Draw timeline boxes
+        for (int t = 0; t < hyperperiod; ++t) {
+            sf::RectangleShape box(sf::Vector2f(boxWidth, boxHeight));
+            box.setPosition(t * (boxWidth + spacing) + 50, 25);
+            box.setFillColor(taskColors[timeline[t]]);
+            box.setOutlineColor(sf::Color::Black);
+            box.setOutlineThickness(1);
+            window.draw(box);
+        }
+
+        window.display();
+    }
+}
+

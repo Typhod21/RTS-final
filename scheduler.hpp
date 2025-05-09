@@ -53,10 +53,11 @@ public:
     void generateTimeline(); // Optional for now
     double computeUtilization() const;
     int computeHyperperiod() const;
+    void displayTimelineGraphic();
 private:
     std::vector<Task> tasks_;
     int choice_;
-
+    vector<int> timeline;
     
 };
 
