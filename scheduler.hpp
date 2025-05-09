@@ -7,7 +7,6 @@
 // // task|WCET|Period|Deadline| for non resource sharing protocols
 // // task|ReleaseTime|WCET|Period|Deadline|Priority|Critical Section| for resource sharing protocols
 
-
 #ifndef SCHEDULER_HPP
 #define SCHEDULER_HPP
 using namespace std;
@@ -22,16 +21,18 @@ using namespace std;
 #include <queue>
 #include <unordered_map>
 
-#define CHOICE      0
-#define CHOICE_RM   1
-#define CHOICE_DM   2
-#define CHOICE_EDF  3
-#define CHOICE_LST  4
-#define CHOICE_PIP  5
+#define CHOICE 0
+#define CHOICE_RM 1
+#define CHOICE_DM 2
+#define CHOICE_EDF 3
+#define CHOICE_LST 4
+#define CHOICE_PIP 5
 #define CHOICE_OCPP 6
 #define CHOICE_ICPP 7
+#define CHOICE_ARB_DEADLINE 8
 
-struct Task {
+struct Task
+{
     int id;
     int WCET;
     int period;
@@ -39,35 +40,38 @@ struct Task {
     int priority;
 };
 
-
-class Scheduler {
+class Scheduler
+{
 public:
-	Scheduler(); // Default constructor
-    Scheduler(const std::vector<Task>& tasks, int choice = CHOICE);
+    Scheduler(); // Default constructor
+    Scheduler(const std::vector<Task> &tasks, int choice = CHOICE);
 
-    bool runRMDMTest();
+    bool runRMDMTest(std::vector<Task> taskSet);
     bool runEDFLSTTest();
-    bool runPIPTest(); // Optional for now
+    bool runPIPTest();      // Optional for now
     bool runOCPPICPPTest(); // Optional for now
+    bool runOPA();
     void setPriority();
     void generateTimeline(); // Optional for now
     double computeUtilization() const;
     int computeHyperperiod() const;
-private:
     std::vector<Task> tasks_;
-    int choice_;
 
-    
+private:
+    // std::vector<Task> tasks_;
+    int choice_;
 };
 
-//from chat
-struct ResourceRequest {
+// from chat
+struct ResourceRequest
+{
     string resource;
     int duration;
     bool nested;
 };
 
-struct Job {
+struct Job
+{
     string id;
     int releaseTime;
     int executionTime;
@@ -81,7 +85,8 @@ struct Job {
     string waitingFor;
 };
 
-struct Resource {
+struct Resource
+{
     string id;
     bool isHeld = false;
     string heldBy;
@@ -89,32 +94,39 @@ struct Resource {
     queue<string> waitingQueue;
 };
 
-class Inheritance {
+class Inheritance
+{
     vector<Job> tasks;
     unordered_map<string, Resource> resources;
     int time = 0;
 
 public:
-    Inheritance(const vector<Job>& taskList) : tasks(taskList) {
-        for (const auto& task : taskList) {
-            for (const auto& req : task.resourceSequence)
-                resources[req.resource] = Resource{ req.resource };
+    Inheritance(const vector<Job> &taskList) : tasks(taskList)
+    {
+        for (const auto &task : taskList)
+        {
+            for (const auto &req : task.resourceSequence)
+                resources[req.resource] = Resource{req.resource};
         }
     }
 
-    void simulatePIP() {
+    void simulatePIP()
+    {
         cout << "Starting PIP Simulation\n";
 
-        while (!allTasksFinished()) {
+        while (!allTasksFinished())
+        {
             cout << "Time: " << time << "\n";
             updateResourceUsage();
 
-            Job* nextTask = getNextRunnableTask();
+            Job *nextTask = getNextRunnableTask();
 
-            if (nextTask) {
+            if (nextTask)
+            {
                 runTask(*nextTask);
             }
-            else {
+            else
+            {
                 cout << "  CPU Idle\n";
             }
 
@@ -124,19 +136,25 @@ public:
         cout << "Simulation complete.\n";
     }
 
-    bool allTasksFinished() {
-        return all_of(tasks.begin(), tasks.end(), [](const Job& t) { return t.isFinished; });
+    bool allTasksFinished()
+    {
+        return all_of(tasks.begin(), tasks.end(), [](const Job &t)
+                      { return t.isFinished; });
     }
 
-    void updateResourceUsage() {
-        for (auto it = resources.begin(); it != resources.end(); ++it) {
-            const std::string& rid = it->first;
-            Resource& res = it->second;
-            if (res.isHeld) {
+    void updateResourceUsage()
+    {
+        for (auto it = resources.begin(); it != resources.end(); ++it)
+        {
+            const std::string &rid = it->first;
+            Resource &res = it->second;
+            if (res.isHeld)
+            {
                 res.timeLeft--;
-                if (res.timeLeft == 0) {
+                if (res.timeLeft == 0)
+                {
                     cout << "  Resource " << rid << " released by " << res.heldBy << "\n";
-                    Job& t = getTaskById(res.heldBy);
+                    Job &t = getTaskById(res.heldBy);
                     t.resourceIndex++;
                     res.isHeld = false;
                     res.heldBy = "";
@@ -145,9 +163,11 @@ public:
                     t.currentPriority = t.basePriority;
 
                     // Unblock waiting tasks
-                    if (!res.waitingQueue.empty()) {
-                        string waitingTaskId = res.waitingQueue.front(); res.waitingQueue.pop();
-                        Job& wt = getTaskById(waitingTaskId);
+                    if (!res.waitingQueue.empty())
+                    {
+                        string waitingTaskId = res.waitingQueue.front();
+                        res.waitingQueue.pop();
+                        Job &wt = getTaskById(waitingTaskId);
                         wt.isBlocked = false;
                     }
                 }
@@ -155,34 +175,40 @@ public:
         }
     }
 
-    Job* getNextRunnableTask() {
-        Job* selected = nullptr;
+    Job *getNextRunnableTask()
+    {
+        Job *selected = nullptr;
 
-        for (auto& t : tasks) {
+        for (auto &t : tasks)
+        {
             if (t.isFinished || t.releaseTime > time || t.isBlocked)
                 continue;
 
             // Check if resource needed
-            if (t.resourceIndex < t.resourceSequence.size()) {
-                const auto& req = t.resourceSequence[t.resourceIndex];
-                Resource& r = resources[req.resource];
+            if (t.resourceIndex < t.resourceSequence.size())
+            {
+                const auto &req = t.resourceSequence[t.resourceIndex];
+                Resource &r = resources[req.resource];
 
-                if (!r.isHeld) {
+                if (!r.isHeld)
+                {
                     // Acquire it
                     r.isHeld = true;
                     r.heldBy = t.id;
                     r.timeLeft = req.duration;
                     cout << "  " << t.id << " acquired " << r.id << " for " << req.duration << " units";
                 }
-                else if (r.heldBy != t.id) {
+                else if (r.heldBy != t.id)
+                {
                     // Blocked
                     t.isBlocked = true;
                     t.waitingFor = r.id;
                     r.waitingQueue.push(t.id);
 
                     // Priority Inheritance
-                    Job& holder = getTaskById(r.heldBy);
-                    if (t.currentPriority < holder.currentPriority) {
+                    Job &holder = getTaskById(r.heldBy);
+                    if (t.currentPriority < holder.currentPriority)
+                    {
                         cout << "  " << holder.id << " inherits priority from " << t.id << "\n";
                         holder.currentPriority = t.currentPriority;
                     }
@@ -198,17 +224,21 @@ public:
         return selected;
     }
 
-    void runTask(Job& t) {
+    void runTask(Job &t)
+    {
         cout << "  Running " << t.id << "\n";
         t.remainingTime--;
-        if (t.remainingTime == 0) {
+        if (t.remainingTime == 0)
+        {
             t.isFinished = true;
             cout << "  " << t.id << " finished execution\n";
         }
     }
 
-    Job& getTaskById(const string& id) {
-        for (auto& t : tasks) {
+    Job &getTaskById(const string &id)
+    {
+        for (auto &t : tasks)
+        {
             if (t.id == id)
                 return t;
         }
