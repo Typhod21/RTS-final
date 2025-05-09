@@ -28,6 +28,7 @@ using namespace std;
          return 1;
      }
 
+     //Vector for holding tasks
      vector<Task> tasks;
      for (int i = 0; i < numTasks; ++i) {
          Task task;
