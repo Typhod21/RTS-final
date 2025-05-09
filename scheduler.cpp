@@ -293,6 +293,70 @@ void Scheduler::generateTimeline()
     std::cout << "|\n";
 }
 
+
+Inheritance::Inheritance(vector<Job>& taskList, int numOfResource) : jobs(taskList), numOfResource(numOfResource) {
+	for (int i = 0; i < numOfResource; ++i) {
+		Resource res;
+        res.id = "S" + to_string(i + 1);
+		resources.push_back(res);
+	}
+    for (auto& task : jobs) {
+        task.RWCET = task.WCET;
+        task.currentPriority = task.basePriority;
+		for (auto& resource : task.resourceSequence) {
+			Resource& res = getResourceById(resource.id);
+			if (res.ceilingPriority < task.basePriority)
+				res.ceilingPriority = task.basePriority;
+        }
+		cout << "Task " << task.id << " ceiling priority: " << task.basePriority << endl;
+		cout << "WCET: " << task.WCET << ", Release Time: " << task.releaseTime << ", Deadline: " << task.deadline << endl;
+		cout << "RWECET: " << task.RWCET << ", Current Priority: " << task.currentPriority << endl;
+    }
+	for (auto& resource : resources) {
+		cout << "Resource " << resource.id << " ceiling priority: " << resource.ceilingPriority << endl;
+	}
+}
+
+void Inheritance::simulatePIP() {
+    cout << "Starting PIP Simulation\n";
+	Job* prevTask = nullptr;
+
+    while (!allTasksFinished()) {
+        cout << "Time: " << time << "\n";
+        updateResourceUsage(*prevTask);
+
+        Job* nextTask = getNextRunnableTask();
+
+        if (nextTask) {
+            runTask(*nextTask);
+			prevTask = nextTask;
+        }
+        else {
+            cout << "  CPU Idle\n";
+			prevTask = nullptr;
+        }
+        time++;
+    }
+    cout << "Simulation complete.\n";
+}
+
+
+
+void Inheritance::updateResourceUsage(Job& job) {
+	if (&job == nullptr)
+		return;
+    job.RWCET--;
+    for (auto& resourceRequest : job.resourceSequence) {
+        Resource& resource = getResourceById(resourceRequest.id);
+        if (resource.heldBy == job.id)
+            resourceRequest.duration--;
+        if (resourceRequest.duration == 0) {
+            resource.isHeld = false;
+            resource.heldBy = "";
+            cout << "  " << job.id << " released " << resourceRequest.id << "\n";
+        }
+    }
+
 bool Scheduler::runOPA()
 {
     bool unassigned = false;
@@ -342,4 +406,71 @@ bool Scheduler::runOPA()
         }
     }
     return true;
+}
+
+Job* Inheritance::getNextRunnableTask() {
+    Job* selected = nullptr;
+
+	//find the next task with the highest priority
+	for (auto& t : jobs) {
+		if (t.isFinished || t.releaseTime > time || t.isBlocked)
+			continue;
+		if (!selected || t.currentPriority > selected->currentPriority)
+			selected = &t;
+	}
+
+    if (!selected) {
+		cout << "  No runnable tasks\n";
+		return nullptr;
+    }
+
+	for (auto& resourceRequest : selected->resourceSequence) {
+		Resource& resource = getResourceById(resourceRequest.id);
+        if (resource.isHeld && resource.heldBy != selected->id) {
+			cout << "  " << selected->id << " is blocked by " << resource.heldBy << "\n";
+			selected->isBlocked = true;
+			selected->waitingFor = resourceRequest.id;
+			return nullptr;
+        }
+        else if (!resource.isHeld) {
+			resource.isHeld = true;
+			resource.heldBy = selected->id;
+			cout << "  " << selected->id << " acquired " << resource.id << "\n";
+            break;
+
+        }
+
+	}
+
+	return selected;
+}
+
+bool Inheritance::allTasksFinished() {
+    return all_of(jobs.begin(), jobs.end(), [](const Job& t) { return t.isFinished; });
+}
+
+void Inheritance::runTask(Job& t) {
+    cout << "  Running " << t.id << "\n";
+    t.RWCET--;
+    if (t.RWCET == 0) {
+        t.isFinished = true;
+        cout << "  " << t.id << " finished execution\n";
+    }
+}
+
+Job& Inheritance::getTaskById(const string& id) {
+    for (auto& t : jobs) {
+        if (t.id == id)
+            return t;
+    }
+    throw runtime_error("Invalid Task ID");
+}
+
+Resource& Inheritance::getResourceById(const string& id) {
+    for (auto& r : resources) {
+        if (r.id == id)
+            return r;
+    }
+	cout << "Invalid Resource ID: " << id << endl;
+    throw runtime_error("Invalid Resource ID");
 }
