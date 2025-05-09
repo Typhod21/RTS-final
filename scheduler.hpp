@@ -7,7 +7,6 @@
 // // task|WCET|Period|Deadline| for non resource sharing protocols
 // // task|ReleaseTime|WCET|Period|Deadline|Priority|Critical Section| for resource sharing protocols
 
-
 #ifndef SCHEDULER_HPP
 #define SCHEDULER_HPP
 using namespace std;
@@ -22,16 +21,18 @@ using namespace std;
 #include <queue>
 #include <unordered_map>
 
-#define CHOICE      0
-#define CHOICE_RM   1
-#define CHOICE_DM   2
-#define CHOICE_EDF  3
-#define CHOICE_LST  4
-#define CHOICE_PIP  5
+#define CHOICE 0
+#define CHOICE_RM 1
+#define CHOICE_DM 2
+#define CHOICE_EDF 3
+#define CHOICE_LST 4
+#define CHOICE_PIP 5
 #define CHOICE_OCPP 6
 #define CHOICE_ICPP 7
+#define CHOICE_ARB_DEADLINE 8
 
-struct Task {
+struct Task
+{
     int id;
     int WCET;
     int period;
@@ -39,26 +40,28 @@ struct Task {
     int priority;
 };
 
-
-class Scheduler {
+class Scheduler
+{
 public:
-	Scheduler(); // Default constructor
-    Scheduler(const std::vector<Task>& tasks, int choice = CHOICE);
+    Scheduler(); // Default constructor
+    Scheduler(const std::vector<Task> &tasks, int choice = CHOICE);
 
-    bool runRMDMTest();
+    bool runRMDMTest(std::vector<Task> taskSet);
     bool runEDFLSTTest();
-    bool runPIPTest(); // Optional for now
+    bool runPIPTest();      // Optional for now
     bool runOCPPICPPTest(); // Optional for now
+    bool runOPA();
     void setPriority();
     void generateTimeline(); // Optional for now
     double computeUtilization() const;
     int computeHyperperiod() const;
-private:
     std::vector<Task> tasks_;
-    int choice_;
 
-    
+private:
+    // std::vector<Task> tasks_;
+    int choice_;
 };
+
 
 //from chat
 
@@ -72,10 +75,12 @@ struct Resource {
 struct ResourceRequest {
 	string id;
 	int duration;
+
     bool nested;
 };
 
-struct Job {
+struct Job
+{
     string id;
     int releaseTime;
     int WCET;
@@ -94,6 +99,7 @@ struct Job {
 
 
 
+
 class Inheritance {
     vector<Job> jobs;
     vector<Resource> resources;
@@ -109,6 +115,7 @@ public:
     void runTask(Job& t);
     Job& getTaskById(const string& id);
 	Resource& getResourceById(const string& id);
+
 };
 
 #endif // SCHEDULER_H
