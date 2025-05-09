@@ -70,13 +70,14 @@ struct Resource {
     int ceilingPriority = 0;
     bool isHeld = false;
     string heldBy;
+	
 };
 
 struct ResourceRequest {
 	string id;
 	int duration;
-
     bool nested;
+    bool isFinished = false;
 };
 
 struct Job

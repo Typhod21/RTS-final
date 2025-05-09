@@ -82,11 +82,11 @@ TEST_CASE("Scheduler Tests PIP") {
 	int numOfResources = 2;
 	// id, release time, WCET, priority, period, deadline, {id,duration}
     vector<Job> taskList = {
-        {"J1", 10, 4, 5, 21, 21, {{"S1", 3, false}}},
-        {"J2", 8,  3, 4, 21, 21, {{"S2", 2, false}}},
-        {"J3", 6,  3, 3, 21, 21, {{"S1", 2, false}}},
-        {"J4", 3,  7, 2, 21, 21, {{"S1", 4, false}, {"S2", 2, true}}},
-        {"J5", 0,  6, 1, 21, 21, {{"S2", 3, false}}}
+        {"J1", 10, 4, 5, 23, 23, {{"S1", 3, false}}},
+        {"J2", 8,  3, 4, 23, 23, {{"S2", 2, false}}},
+        {"J3", 6,  3, 3, 23, 23, {{"S1", 2, false}}},
+        {"J4", 3,  7, 2, 23, 23, {{"S1", 4, false}, {"S2", 2, true}}},
+        {"J5", 0,  6, 1, 23, 23, {{"S2", 3, false}}}
     };
 
 
