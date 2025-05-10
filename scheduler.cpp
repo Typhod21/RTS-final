@@ -344,63 +344,57 @@ bool Scheduler::runOPA()
 
 
 Inheritance::Inheritance(vector<Job>& taskList, int numOfResource, int choice) : jobs(taskList), numOfResource(numOfResource), choice_(choice) {
-	for (int i = 1; i <= numOfResource; ++i) {
-		Resource res;
+    for (int i = 1; i <= numOfResource; ++i) {
+        Resource res;
         res.id = i;
-		resources.push_back(res);
-	}
+        resources.push_back(res);
+    }
     for (auto& task : jobs) {
         task.RWCET = task.WCET;
         task.currentPriority = task.basePriority;
-        for (auto &resource : task.resourceSequence)
+        for (auto& resource : task.resourceSequence)
         {
-            Resource &res = getResourceById(resource.id);
+            Resource& res = getResourceById(resource.id);
             if (res.ceilingPriority < task.basePriority)
                 res.ceilingPriority = task.basePriority;
         }
-        cout << "Task " << task.id << " ceiling priority: " << task.basePriority << endl;
-        cout << "WCET: " << task.WCET << ", Release Time: " << task.releaseTime << ", Deadline: " << task.deadline << endl;
-        cout << "RWECET: " << task.RWCET << ", Current Priority: " << task.currentPriority << endl;
-    }
-    for (auto &resource : resources)
-    {
-        cout << "Resource " << resource.id << " ceiling priority: " << resource.ceilingPriority << endl;
     }
 }
 
 void Inheritance::simulateResource()
 {
     cout << "Starting Simulation\n";
-    Job *prevTask = nullptr;
+    Job* prevTask = nullptr;
 
     while (!allTasksFinished())
     {
 
 
-    while (!allTasksFinished()) {
-		for (auto& job : jobs) {
-			if (job.deadline < time || job.period < time) {
-				cout << " T" << job.id << " exceeds its period or missed its deadline at time:  " << time << "\n";
-                return;
-			}
-		}
-        cout << "Time: " << time << "\n";
-        updateResourceUsage(*prevTask);
-        Job* nextTask = getNextRunnableTask();
+        while (!allTasksFinished()) {
+            for (auto& job : jobs) {
+                if (job.deadline < time || job.period < time) {
+                    cout << " T" << job.id << " exceeds its period or missed its deadline at time:  " << time << "\n";
+                    return;
+                }
+            }
+            cout << "Time: " << time << "\n";
+            updateResourceUsage(*prevTask);
+            Job* nextTask = getNextRunnableTask();
 
-        if (nextTask)
-        {
-            runTask(*nextTask);
-            prevTask = nextTask;
+            if (nextTask)
+            {
+                runTask(*nextTask);
+                prevTask = nextTask;
+            }
+            else
+            {
+                cout << "  CPU Idle\n";
+                prevTask = nullptr;
+            }
+            time++;
         }
-        else
-        {
-            cout << "  CPU Idle\n";
-            prevTask = nullptr;
-        }
-        time++;
+        cout << "Simulation complete.\n";
     }
-    cout << "Simulation complete.\n";
 }
 
 void Inheritance::updateResourceUsage(Job &job)
@@ -425,11 +419,6 @@ void Inheritance::updateResourceUsage(Job &job)
             job.currentPriority = job.basePriority;
 
             cout << " T" << job.id << " released R" << resourceRequest.id << "\n";
-            /*for (int i = 0; i < resources.size(); i++)
-            {
-                cout << "resource id: " << resources[i].id << " isHeld: " << resources[i].isHeld << '\n';
-            }
-            cout << job.currentPriority << '\n';*/
             if (choice_ == CHOICE_ICPP || choice_ == CHOICE_OCPP)
             {
                 for (auto &res : job.resourceSequence)
@@ -443,7 +432,6 @@ void Inheritance::updateResourceUsage(Job &job)
             resourceRequest.isFinished = true;
             for (auto &j : jobs)
             {
-                // cout << j.waitingFor << " " << resourceRequest.id << '\n';
                 if (choice_ == CHOICE_OCPP)
                 {
                     if (j.isBlocked)
@@ -478,7 +466,6 @@ Job* Inheritance::getNextRunnableTask() {
 		return nullptr;
 
     }
-    // cout << "  Selected task: " << selected->id <<  "Prior : " << selected->currentPriority << "\n";
 
 
 	for (auto& resourceRequest : selected->resourceSequence) {
@@ -507,13 +494,11 @@ Job* Inheritance::getNextRunnableTask() {
                         lockedCeiling = resources[i].ceilingPriority;
                     }
                 }
-                // cout << "current priority: " << selected->currentPriority << '\n';
-                // cout << "locked ceiling: " << lockedCeiling << '\n';
                 if (selected->currentPriority > lockedCeiling)
                 {
                     resource.isHeld = true;
                     resource.heldBy = selected->id;
-                    cout << "  " << selected->id << " acquired " << resource.id << "\n";
+                    cout << "  T" << selected->id << " acquired R" << resource.id << "\n";
                 }
                 else
                 {
@@ -526,7 +511,6 @@ Job* Inheritance::getNextRunnableTask() {
                                 jobs[j].id == resources[i].heldBy && jobs[j].currentPriority < selected->currentPriority)
                             {
                                 jobs[j].currentPriority = selected->currentPriority;
-                                // selected->currentPriority--;
                                 selected->isBlocked = true;
                                 selected->waitingFor = resourceRequest.id;
                                 return getNextRunnableTask();
@@ -539,7 +523,7 @@ Job* Inheritance::getNextRunnableTask() {
             {
                 resource.isHeld = true;
                 resource.heldBy = selected->id;
-                cout << "  " << selected->id << " acquired " << resource.id << "\n";
+                cout << "  T" << selected->id << " acquired R" << resource.id << "\n";
                 if (choice_ == CHOICE_ICPP)
                 {
                     if (selected->currentPriority < resource.ceilingPriority)
