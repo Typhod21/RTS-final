@@ -108,14 +108,16 @@ class Inheritance {
     int time = 0;
 
 public:
-    Inheritance(vector<Job>& taskList, int numOfResource);
-    void simulatePIP();
+    Inheritance(vector<Job>& taskList, int numOfResource, int choice = CHOICE);
+    void simulateResource();
     bool allTasksFinished();
     void updateResourceUsage(Job& job);
     Job* getNextRunnableTask();
     void runTask(Job& t);
     Job& getTaskById(const string& id);
 	Resource& getResourceById(const string& id);
+private:
+    int choice_;
 
 };
 
