@@ -80,6 +80,7 @@ TEST_CASE("Scheduler Tests LST")
 
 TEST_CASE("Scheduler Tests PIP")
 {
+	cout << "Testing PIP\n";
     int numOfResources = 2;
     // id, release time, WCET, priority, period, deadline, {id,duration}
     vector<Job> taskList = {
@@ -98,6 +99,7 @@ TEST_CASE("Scheduler Tests PIP")
 
 TEST_CASE("Scheduler Tests ICPP")
 {
+	cout << "Testing ICPP\n";
     int numOfResources = 2;
     // id, release time, WCET, priority, period, deadline, {id,duration, nested}
     vector<Job> taskList = {
@@ -115,6 +117,7 @@ TEST_CASE("Scheduler Tests ICPP")
 
 
 TEST_CASE("Scheduler Tests OCPP") {
+	cout << "Testing OCPP\n";
     int numOfResources = 2;
     // id, release time, WCET, priority, period, deadline, {id,duration, nested}
     vector<Job> taskList = {
@@ -123,6 +126,23 @@ TEST_CASE("Scheduler Tests OCPP") {
        {3, 6,  3, 3, 23, 23, {{2, 2}}},
        {4, 3,  7, 2, 23, 23, {{1, 4}, {2, 2}}},
        {5, 0,  6, 1, 23, 23, {{2, 3}}}
+    };
+
+
+    Inheritance Inheritance(taskList, numOfResources, CHOICE_OCPP);
+    Inheritance.simulateResource();
+}
+
+TEST_CASE("Scheduler Tests OCPP2") {
+    cout << "Testing OCPP2\n";
+    int numOfResources = 2;
+    // id, release time, WCET, priority, period, deadline, {id,duration, nested}
+    vector<Job> taskList = {
+       {1, 10, 4, 5, 23, 23, {{1, 3}}},
+       {2, 8,  3, 4, 23, 23, {{2, 2}}},
+       {3, 6,  3, 3, 23, 23, {{1, 2}}},
+       {4, 3,  7, 2, 23, 23, {{1, 4}, {2, 2}}},
+       {5, 0,  6, 1, 23, 23, {{2, 5}}}
     };
 
 
