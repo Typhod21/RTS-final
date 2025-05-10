@@ -48,14 +48,13 @@ public:
 
     bool runRMDMTest(std::vector<Task> taskSet);
     bool runEDFLSTTest();
-    bool runPIPTest();      // Optional for now
-    bool runOCPPICPPTest(); // Optional for now
     bool runOPA();
     void setPriority();
-    void generateTimeline(); // Optional for now
+    void generateTimeline();
     double computeUtilization() const;
     int computeHyperperiod() const;
     std::vector<Task> tasks_;
+	std::vector<string> timeline;
 
 private:
     // std::vector<Task> tasks_;
@@ -63,26 +62,22 @@ private:
 };
 
 
-//from chat
-
 struct Resource {
-    string id;
+    int id;
     int ceilingPriority = 0;
     bool isHeld = false;
-    string heldBy;
-	
+    int heldBy;
 };
 
 struct ResourceRequest {
-	string id;
+	int id;
 	int duration;
-    bool nested;
     bool isFinished = false;
 };
 
 struct Job
 {
-    string id;
+    int id;
     int releaseTime;
     int WCET;
     int basePriority;
@@ -92,18 +87,21 @@ struct Job
 
     int RWCET;
     int currentPriority;
-    int resourceIndex = 0;
     bool isBlocked = false;
     bool isFinished = false;
-    string waitingFor;
+    int waitingFor;
 };
 
-
-
+struct simulate {
+    string job;
+	vector<Resource> resource;
+    int time;
+};
 
 class Inheritance {
     vector<Job> jobs;
     vector<Resource> resources;
+	vector<simulate> timeline;
 	int numOfResource;
     int time = 0;
 
@@ -114,11 +112,10 @@ public:
     void updateResourceUsage(Job& job);
     Job* getNextRunnableTask();
     void runTask(Job& t);
-    Job& getTaskById(const string& id);
-	Resource& getResourceById(const string& id);
+    Job& getTaskById(const int& id);
+	Resource& getResourceById(const int& id);
 private:
     int choice_;
-
 };
 
 #endif // SCHEDULER_H
