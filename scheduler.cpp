@@ -195,22 +195,9 @@ bool Scheduler::runEDFLSTTest()
 
     return true;
 }
-bool Scheduler::runPIPTest()
-{
-    // Optional PIP feature
-    cout << "PIP test not implemented.\n";
-    return true;
-}
-bool Scheduler::runOCPPICPPTest()
-{
-    // Optional OCPP/ICPP feature
-    cout << "OCPP/ICPP test not implemented.\n";
-    return true;
-}
 
 void Scheduler::generateTimeline()
 {
-    // Optional timeline feature
     int hyperperiod = computeHyperperiod();
     vector<int> remaining(tasks_.size(), 0);
     vector<int> nextRelease(tasks_.size(), 0);
@@ -281,12 +268,14 @@ void Scheduler::generateTimeline()
         // Print which task runs
         if (runningTask != -1)
         {
+			timeline.push_back("|T" + std::to_string(tasks_[runningTask].id));
             std::cout << "|T" << tasks_[runningTask].id;
             remaining[runningTask]--;
             previousTask = runningTask;
         }
         else
         {
+			timeline.push_back("|ID");
             std::cout << "|ID";
         }
     }
@@ -345,9 +334,9 @@ bool Scheduler::runOPA() {
 
 
 Inheritance::Inheritance(vector<Job>& taskList, int numOfResource, int choice) : jobs(taskList), numOfResource(numOfResource), choice_(choice) {
-	for (int i = 0; i < numOfResource; ++i) {
+	for (int i = 1; i <= numOfResource; ++i) {
 		Resource res;
-        res.id = "S" + to_string(i + 1);
+        res.id = i;
 		resources.push_back(res);
 	}
     for (auto& task : jobs) {
@@ -372,9 +361,14 @@ void Inheritance::simulateResource() {
 	Job* prevTask = nullptr;
 
     while (!allTasksFinished()) {
+		for (auto& job : jobs) {
+			if (job.deadline < time || job.period < time) {
+				cout << " T" << job.id << " exceeds its period or missed its deadline at time:  " << time << "\n";
+                return;
+			}
+		}
         cout << "Time: " << time << "\n";
         updateResourceUsage(*prevTask);
-
         Job* nextTask = getNextRunnableTask();
 
         if (nextTask) {
@@ -403,11 +397,11 @@ void Inheritance::updateResourceUsage(Job& job) {
         Resource& resource = getResourceById(resourceRequest.id);
         if (resource.heldBy == job.id)
             resourceRequest.duration--;
-        if (resourceRequest.duration == 0 && resource.isHeld) {
+        if (resourceRequest.duration == 0 && resource.isHeld && resource.heldBy == job.id) {
             resource.isHeld = false;
-            resource.heldBy = "";
+            resource.heldBy = 0;
             job.currentPriority = job.basePriority;
-            cout << "  " << job.id << " released " << resourceRequest.id << "\n";
+            cout << " T" << job.id << " released R" << resourceRequest.id << "\n";
             if (choice_ == CHOICE_ICPP) {
                 for (auto& res : job.resourceSequence) {
                     Resource& reso = getResourceById(res.id);
@@ -416,7 +410,6 @@ void Inheritance::updateResourceUsage(Job& job) {
                 }
 
             }
-
             resourceRequest.isFinished = true;
             for (auto& j : jobs) {
                 if (j.isBlocked && j.waitingFor == resourceRequest.id)
@@ -431,7 +424,6 @@ void Inheritance::updateResourceUsage(Job& job) {
 
 Job* Inheritance::getNextRunnableTask() {
     Job* selected = nullptr;
-
 	//find the next task with the highest priority
 	for (auto& t : jobs) {
 		if (t.isFinished || t.releaseTime > time || t.isBlocked)
@@ -439,18 +431,15 @@ Job* Inheritance::getNextRunnableTask() {
 		if (!selected || t.currentPriority > selected->currentPriority)
 			selected = &t;
 	}
-	//cout << "  Selected task: " << selected->id <<  "Prior : " << selected->currentPriority << "\n";
-
     if (!selected) {
 		cout << "  No runnable tasks\n";
 		return nullptr;
     }
 
 	for (auto& resourceRequest : selected->resourceSequence) {
-		bool here = false;
 		Resource& resource = getResourceById(resourceRequest.id);
         if (resource.isHeld && resource.heldBy != selected->id) {
-			cout << "  " << selected->id << " is blocked by " << resource.heldBy << "\n";
+			cout << " T" << selected->id << " is blocked by " << resource.heldBy << "\n";
             Job& prev = getTaskById(resource.heldBy);
             prev.currentPriority = selected->basePriority;
 			selected->isBlocked = true;
@@ -460,7 +449,7 @@ Job* Inheritance::getNextRunnableTask() {
         else if (!resource.isHeld && !resourceRequest.isFinished) {
 			resource.isHeld = true;
 			resource.heldBy = selected->id;
-			cout << "  " << selected->id << " acquired " << resource.id << "\n";
+			cout << " T" << selected->id << " acquired R" << resource.id << "\n";
             if (choice_ == CHOICE_ICPP) {
                 if(selected->currentPriority < resource.ceilingPriority)
 				    selected->currentPriority = resource.ceilingPriority;
@@ -477,54 +466,30 @@ bool Inheritance::allTasksFinished() {
     return all_of(jobs.begin(), jobs.end(), [](const Job& t) { return t.isFinished; });
 }
 
-void Inheritance::runTask(Job& t) {
-    cout << "  Running " << t.id << "\n";
-    t.RWCET--;
-   /* if (t.RWCET == 0) {
-        t.isFinished = true;
-        cout << "  " << t.id << " finished execution\n";
-    }*/
-    /*for (auto& resourceRequest : t.resourceSequence) {
-        Resource& resource = getResourceById(resourceRequest.id);
-        if (resource.heldBy == t.id)
-            resourceRequest.duration--;
-        if (resourceRequest.duration == 0 && resource.isHeld) {
-            resource.isHeld = false;
-            resource.heldBy = "";
-            t.currentPriority = t.basePriority;
-            cout << "  " << t.id << " released " << resourceRequest.id << "\n";
-			if (choice_ == CHOICE_ICPP) {
-				for (auto& res : t.resourceSequence) {
-					Resource& reso = getResourceById(res.id);
-					if (reso.ceilingPriority > t.currentPriority && reso.heldBy == t.id)
-						t.currentPriority = reso.ceilingPriority;
-				}
-				
-			}
-
-			resourceRequest.isFinished = true;
-            for (auto& job : jobs) {
-                if (job.isBlocked && job.waitingFor == resourceRequest.id)
-                    job.isBlocked = false;
-            }
-
-        }
-    }*/
-    
+void Inheritance::runTask(Job& job) {
+    cout << "  Running T" << job.id << "\n";
+	vector<Resource> res;
+    for (auto& resource : resources) {
+		if (resource.heldBy == job.id) {
+			res.push_back(resource);
+		}
+    }
+	timeline.push_back({ "T" + to_string(job.id),res , time });
+    job.RWCET--;  
 }
 
-Job& Inheritance::getTaskById(const string& id) {
-    for (auto& t : jobs) {
-        if (t.id == id)
-            return t;
+Job& Inheritance::getTaskById(const int& id) {
+    for (auto& job : jobs) {
+        if (job.id == id)
+            return job;
     }
     throw runtime_error("Invalid Task ID");
 }
 
-Resource& Inheritance::getResourceById(const string& id) {
-    for (auto& r : resources) {
-        if (r.id == id)
-            return r;
+Resource& Inheritance::getResourceById(const int& id) {
+    for (auto& resource : resources) {
+        if (resource.id == id)
+            return resource;
     }
 	cout << "Invalid Resource ID: " << id << endl;
     throw runtime_error("Invalid Resource ID");
