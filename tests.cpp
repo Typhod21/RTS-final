@@ -78,34 +78,47 @@ TEST_CASE("Scheduler Tests LST")
     scheduler.generateTimeline();
 }
 
-TEST_CASE("Scheduler Tests PIP") {
-	int numOfResources = 2;
-	// id, release time, WCET, priority, period, deadline, {id,duration}
+TEST_CASE("Scheduler Tests PIP")
+{
+    int numOfResources = 2;
+    // id, release time, WCET, priority, period, deadline, {id,duration}
     vector<Job> taskList = {
         {"J1", 10, 4, 5, 23, 23, {{"S1", 3, false}}},
-        {"J2", 8,  3, 4, 23, 23, {{"S2", 2, false}}},
-        {"J3", 6,  3, 3, 23, 23, {{"S1", 2, false}}},
-        {"J4", 3,  7, 2, 23, 23, {{"S1", 4, false}, {"S2", 2, true}}},
-        {"J5", 0,  6, 1, 23, 23, {{"S2", 3, false}}}
-    };
-
+        {"J2", 8, 3, 4, 23, 23, {{"S2", 2, false}}},
+        {"J3", 6, 3, 3, 23, 23, {{"S1", 2, false}}},
+        {"J4", 3, 7, 2, 23, 23, {{"S1", 4, false}, {"S2", 2, true}}},
+        {"J5", 0, 6, 1, 23, 23, {{"S2", 3, false}}}};
 
     Inheritance Inheritance(taskList, numOfResources, CHOICE_PIP);
     Inheritance.simulateResource();
 }
 
-TEST_CASE("Scheduler Tests ICPP") {
+TEST_CASE("Scheduler Tests ICPP")
+{
     int numOfResources = 2;
     // id, release time, WCET, priority, period, deadline, {id,duration}
     vector<Job> taskList = {
         {"J1", 10, 4, 5, 23, 23, {{"S1", 3, false}}},
-        {"J2", 8,  3, 4, 23, 23, {{"S2", 2, false}}},
-        {"J3", 6,  3, 3, 23, 23, {{"S1", 2, false}}},
-        {"J4", 3,  7, 2, 23, 23, {{"S1", 4, false}, {"S2", 2, true}}},
-        {"J5", 0,  6, 1, 23, 23, {{"S2", 3, false}}}
-    };
-
+        {"J2", 8, 3, 4, 23, 23, {{"S2", 2, false}}},
+        {"J3", 6, 3, 3, 23, 23, {{"S1", 2, false}}},
+        {"J4", 3, 7, 2, 23, 23, {{"S1", 4, false}, {"S2", 2, true}}},
+        {"J5", 0, 6, 1, 23, 23, {{"S2", 3, false}}}};
 
     Inheritance Inheritance(taskList, numOfResources, CHOICE_ICPP);
+    Inheritance.simulateResource();
+}
+
+TEST_CASE("Scheduler Tests OCPP")
+{
+    int numOfResources = 2;
+    // id, release time, WCET, priority, period, deadline, {id,duration}
+    vector<Job> taskList = {
+        {"J1", 10, 4, 5, 23, 23, {{"S1", 3, false}}},
+        {"J2", 8, 3, 4, 23, 23, {{"S2", 2, false}}},
+        {"J3", 6, 3, 3, 23, 23, {{"S1", 2, false}}},
+        {"J4", 3, 7, 2, 23, 23, {{"S1", 4, false}, {"S2", 2, true}}},
+        {"J5", 0, 6, 1, 23, 23, {{"S2", 5, false}}}};
+
+    Inheritance Inheritance(taskList, numOfResources, CHOICE_OCPP);
     Inheritance.simulateResource();
 }
