@@ -2,6 +2,8 @@
 #include <numeric> // Add this include for std::lcm
 #include <algorithm>
 
+#include <filesystem>
+
 //graphics:
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
@@ -176,6 +178,8 @@ bool Scheduler::runOCPPICPPTest() {
     return true;
 }
 
+
+
 void Scheduler::generateTimeline() {
     // Optional timeline feature
     int hyperperiod = computeHyperperiod();
@@ -256,16 +260,32 @@ void Scheduler::generateTimeline() {
 }
 
 
+
 void Scheduler::displayTimelineGraphic() {
-    const int boxWidth = 20;  // width of each time unit
+    const int boxWidth = 20;
     const int boxHeight = 50;
     const int spacing = 2;
+    const int arrowSize = 10;
+    const int textOffsetY = 80;
+
     const int hyperperiod = timeline.size();
     unsigned int width = static_cast<unsigned int>((boxWidth + spacing) * hyperperiod + 100);
     unsigned int height = static_cast<unsigned int>(boxHeight + 100);
 
     sf::VideoMode videoMode(width, height);
     sf::RenderWindow window(videoMode, "Task Timeline", sf::Style::Titlebar | sf::Style::Close);
+
+    sf::Font font;
+
+
+    std::string fontPath = "arial.ttf";  // fully initialized, safe
+    std::cout << "Loading font from: " << fontPath << "\n";
+
+    if (!font.loadFromFile(fontPath)) {
+        std::cerr << "Error loading font\n";
+        return;
+    }
+    //font.loadFromFile("C:/Windows/Fonts/arial");
 
     // Assign colors to tasks
     std::map<int, sf::Color> taskColors;
@@ -295,17 +315,56 @@ void Scheduler::displayTimelineGraphic() {
 
         window.clear(sf::Color::White);
 
-        // Draw timeline boxes
+        // Draw timeline boxes and colored spacings
         for (int t = 0; t < hyperperiod; ++t) {
+            float x = t * (boxWidth + spacing) + 50;
             sf::RectangleShape box(sf::Vector2f(boxWidth, boxHeight));
-            box.setPosition(t * (boxWidth + spacing) + 50, 25);
+            box.setPosition(x, 25);
             box.setFillColor(taskColors[timeline[t]]);
             box.setOutlineColor(sf::Color::Black);
             box.setOutlineThickness(1);
             window.draw(box);
+
+            // Draw colored spacing if next task is the same
+            if (t < hyperperiod - 1 && timeline[t] == timeline[t + 1]) {
+                sf::RectangleShape join(sf::Vector2f(spacing, boxHeight));
+                join.setPosition(x + boxWidth, 25);
+                join.setFillColor(taskColors[timeline[t]]);
+                window.draw(join);
+            }
+        }
+
+        // Draw timeline arrows
+        sf::ConvexShape startArrow;
+        startArrow.setPointCount(3);
+        startArrow.setPoint(0, sf::Vector2f(40, boxHeight / 2 + 25));
+        startArrow.setPoint(1, sf::Vector2f(50, 25));
+        startArrow.setPoint(2, sf::Vector2f(50, boxHeight + 25));
+        startArrow.setFillColor(sf::Color::Black);
+        window.draw(startArrow);
+
+        sf::ConvexShape endArrow;
+        float endX = 50 + hyperperiod * (boxWidth + spacing);
+        endArrow.setPointCount(3);
+        endArrow.setPoint(0, sf::Vector2f(endX + 10, boxHeight / 2 + 25));
+        endArrow.setPoint(1, sf::Vector2f(endX, 25));
+        endArrow.setPoint(2, sf::Vector2f(endX, boxHeight + 25));
+        endArrow.setFillColor(sf::Color::Black);
+        window.draw(endArrow);
+
+        // Add numbering every 5 steps
+        for (int t = 0; t < hyperperiod; t += 5) {
+            sf::Text label;
+            label.setFont(font);
+            label.setString(std::to_string(t));
+            label.setCharacterSize(12);
+            label.setFillColor(sf::Color::Black);
+            label.setPosition(t * (boxWidth + spacing) + 50 + boxWidth / 4, textOffsetY);
+            window.draw(label);
         }
 
         window.display();
     }
 }
+
 

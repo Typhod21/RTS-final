@@ -51,10 +51,12 @@ using namespace std;
          if(scheduler.runRMDMTest()){
              scheduler.setPriority();
              scheduler.generateTimeline();
+             scheduler.displayTimelineGraphic();
          }
      } else if (choice == CHOICE_EDF || choice == CHOICE_LST) {
          if(scheduler.runEDFLSTTest()){
              scheduler.generateTimeline();
+             scheduler.displayTimelineGraphic();
          }
      } else if (choice == CHOICE_PIP) {
 
