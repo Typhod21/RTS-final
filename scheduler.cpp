@@ -4,6 +4,8 @@
 
 //graphics
 #include <SFML/Graphics.hpp>
+#include <filesystem> 
+
 
 using namespace std;
 Scheduler::Scheduler()
@@ -286,65 +288,169 @@ void Scheduler::generateTimeline()
     std::cout << "|\n";
 }
 
-void Scheduler::displayTimeline(){
-    const int blockWidth = 20;   // width of each time unit block
-    const int blockHeight = 50;  // height of each block
-    const int spacing = 2;       // space between blocks
-    const int windowHeight = blockHeight + 100;
-    const int windowWidth = (blockWidth + spacing) * timeline.size() + 100;
+void Scheduler::displayTimeline() {
+    std::string fontPath = "C:\\Fonts\\arial.ttf";
+    if (!std::filesystem::exists(fontPath)) {
+        std::cerr << "Font file does not exist at: " << fontPath << std::endl;
+        return;
+    }
+
+    sf::Font font;
+    if (!font.loadFromFile(fontPath)) {
+        std::cerr << "Failed to load font from: " << fontPath << std::endl;
+        return;
+    }
+
+    const int blockWidth = 20;
+    const int blockHeight = 50;
+    const int spacing = 0;
+    const int maxTimelineSteps = std::min<size_t>(1000, timeline.size());
+    const int stepsPerLine = 100;
+    const int marginLeft = 50;
+    const int marginTop = 80;
+
+    const int blocksPerLine = std::min(stepsPerLine, static_cast<int>(maxTimelineSteps));
+    const int lines = (maxTimelineSteps + stepsPerLine - 1) / stepsPerLine;
+
+    const int windowWidth = blocksPerLine * (blockWidth + spacing) + marginLeft * 2;
+    const int windowHeight = lines * (blockHeight + 60) + marginTop * 2;
 
     sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Scheduler Timeline");
 
-    // Define colors for each task ID
     std::map<std::string, sf::Color> taskColors;
-    int colorIndex = 0;
     std::vector<sf::Color> colors = {
         sf::Color::Red, sf::Color::Green, sf::Color::Blue,
         sf::Color::Yellow, sf::Color::Magenta, sf::Color::Cyan,
-        sf::Color(255, 165, 0), // Orange
-        sf::Color(128, 0, 128), // Purple
-        sf::Color(0, 128, 128), // Teal
+        sf::Color(255, 165, 0),   // Orange
+        sf::Color(128, 0, 128),   // Purple
+        sf::Color(0, 128, 128),   // Teal
+        sf::Color(210, 105, 30),  // DBrown
+        sf::Color(75, 0, 130),    // Indigo
+        sf::Color(60, 179, 113),  // LGreen
+        sf::Color(255, 105, 180), // HotPink
+        sf::Color(47, 79, 79),    // DGray
+        sf::Color(255, 215, 0)    // Gold
     };
+    int colorIndex = 0;
 
-    while (window.isOpen())
-    {
+    while (window.isOpen()) {
         sf::Event event;
-        while (window.pollEvent(event))
-        {
+        while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
         }
 
         window.clear(sf::Color::White);
 
-        for (size_t i = 0; i < timeline.size(); ++i)
-        {
+        for (int i = 0; i < maxTimelineSteps; ++i) {
+            int row = i / stepsPerLine;
+            int col = i % stepsPerLine;
+
             std::string entry = timeline[i].substr(1); // remove '|'
 
-            sf::RectangleShape block(sf::Vector2f(blockWidth, blockHeight));
-            block.setPosition(50 + i * (blockWidth + spacing), 50);
+            float x = marginLeft + col * (blockWidth + spacing);
+            float y = marginTop + row * (blockHeight + 60);
 
-            if (entry == "ID")
-            {
+            sf::RectangleShape block(sf::Vector2f(blockWidth, blockHeight));
+            block.setPosition(x, y);
+
+            if (entry == "ID") {
                 block.setFillColor(sf::Color::Black);
             }
-            else
-            {
-                // Assign a color if this is the first time we see this task
-                if (taskColors.find(entry) == taskColors.end())
-                {
-                    taskColors[entry] = colors[colorIndex % colors.size()];
-                    colorIndex++;
+            else {
+                if (taskColors.find(entry) == taskColors.end()) {
+                    taskColors[entry] = colors[colorIndex++ % colors.size()];
                 }
                 block.setFillColor(taskColors[entry]);
             }
 
             window.draw(block);
+
+            sf::Text text(entry, font, 12);
+            text.setFillColor(sf::Color::Black);
+            text.setPosition(x, y + blockHeight + 2);
+            window.draw(text);
         }
+
+        for (int row = 0; row < lines; ++row) {
+            float y = marginTop + row * (blockHeight + 60) + blockHeight + 25;
+            float startX = marginLeft - 10;
+            float endX = marginLeft + blocksPerLine * (blockWidth + spacing);
+
+            // Draw horizontal timeline line
+            sf::Vertex line[] = {
+                sf::Vertex(sf::Vector2f(startX, y), sf::Color::Black),
+                sf::Vertex(sf::Vector2f(endX, y), sf::Color::Black)
+            };
+            window.draw(line, 2, sf::Lines);
+
+            //Only draw left arrow for first row
+            if (row == 0) {
+                sf::CircleShape leftArrow(5, 3);
+                leftArrow.setRotation(270);
+                leftArrow.setPosition(startX, y +5);
+                leftArrow.setFillColor(sf::Color::Black);
+                window.draw(leftArrow);
+            }
+
+            //Only draw right arrow for the last row
+            if (row == lines - 1) {
+                sf::CircleShape rightArrow(5, 3);
+                rightArrow.setRotation(90);
+                rightArrow.setPosition(endX + 8, y - 5);
+                rightArrow.setFillColor(sf::Color::Black);
+                window.draw(rightArrow);
+            }
+
+            for (int step = 0; step <= stepsPerLine && (row * stepsPerLine + step) <= maxTimelineSteps; ++step) {
+                float tickX = marginLeft + step * (blockWidth + spacing);
+                sf::Vertex tick[] = {
+                    sf::Vertex(sf::Vector2f(tickX, y - 5), sf::Color::Black),
+                    sf::Vertex(sf::Vector2f(tickX, y + 5), sf::Color::Black)
+                };
+                window.draw(tick, 2, sf::Lines);
+
+                if ((step + row * stepsPerLine) % 5 == 0) {
+                    sf::Text label(std::to_string(step + row * stepsPerLine), font, 12);
+                    label.setFillColor(sf::Color::Black);
+                    label.setPosition(tickX - 5, y + 10);
+                    window.draw(label);
+                }
+            }
+        }
+
+        //-----------------------------------------
+        // Draw color key at bottom
+        float legendStartY = marginTop + lines * (blockHeight + 60) + 30;
+        float legendX = marginLeft;
+        float legendBlockSize = 15;
+        float legendSpacing = 10;
+        float textOffsetX = legendBlockSize + 5;
+
+        int count = 0;
+        for (const auto& [taskName, color] : taskColors) {
+            float x = legendX + (count % 5) * 150; // max 5 entries per row
+            float y = legendStartY + (count / 5) * 25;
+
+            sf::RectangleShape colorBox(sf::Vector2f(legendBlockSize, legendBlockSize));
+            colorBox.setPosition(x, y);
+            colorBox.setFillColor(color);
+            window.draw(colorBox);
+
+            sf::Text label(taskName, font, 14);
+            label.setFillColor(sf::Color::Black);
+            label.setPosition(x + textOffsetX, y - 2);
+            window.draw(label);
+
+            count++;
+        }
+        //--------------------------------------------
 
         window.display();
     }
 }
+
+
 
 bool Scheduler::runOPA()
 {
