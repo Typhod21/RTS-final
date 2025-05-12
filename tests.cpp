@@ -99,6 +99,7 @@ TEST_CASE("Scheduler Tests PIP")
 
     Inheritance Inheritance(taskList, numOfResources, CHOICE_PIP);
     Inheritance.simulateResource();
+    Inheritance.displayTimeline();
 }
 
 TEST_CASE("Scheduler Tests ICPP")
@@ -117,6 +118,7 @@ TEST_CASE("Scheduler Tests ICPP")
 
     Inheritance Inheritance(taskList, numOfResources, CHOICE_ICPP);
     Inheritance.simulateResource();
+    Inheritance.displayTimeline();
 }
 
 
@@ -135,6 +137,7 @@ TEST_CASE("Scheduler Tests OCPP") {
 
     Inheritance Inheritance(taskList, numOfResources, CHOICE_OCPP);
     Inheritance.simulateResource();
+    Inheritance.displayTimeline();
 }
 
 TEST_CASE("Scheduler Tests OCPP2") {
@@ -152,5 +155,6 @@ TEST_CASE("Scheduler Tests OCPP2") {
 
     Inheritance Inheritance(taskList, numOfResources, CHOICE_OCPP);
     Inheritance.simulateResource();
+    Inheritance.displayTimeline();
 }
 

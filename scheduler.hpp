@@ -119,6 +119,7 @@ public:
     void runTask(Job& t);
     Job& getTaskById(const int& id);
 	Resource& getResourceById(const int& id);
+    void displayTimeline();
 private:
     int choice_;
 };

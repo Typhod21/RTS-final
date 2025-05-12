@@ -85,10 +85,13 @@ int main(){
     else if (choice == CHOICE_PIP || choice == CHOICE_OCPP || choice == CHOICE_ICPP){
 		Inheritance inheritance(jobs, numResources, choice);
 		inheritance.simulateResource();
-		if (inheritance.allTasksFinished())
-			cout << "All tasks finished successfully.\n";
-		else
-			cout << "Some tasks are still running.\n";
+        if (inheritance.allTasksFinished()) {
+            cout << "All tasks finished successfully.\n";
+        }
+        else {
+            cout << "Some tasks are still running.\n";
+        }
+       // inheritance.displayTimeline(); //display visual
     }
     else
         cout << "Selected protocol with resource sharing not yet implemented.\n";

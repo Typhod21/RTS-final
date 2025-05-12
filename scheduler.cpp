@@ -746,3 +746,242 @@ Resource& Inheritance::getResourceById(const int& id) {
     cout << "Invalid Resource ID: " << id << endl;
     throw runtime_error("Invalid Resource ID");
 }
+/*
+void Inheritance::displayTimeline() {
+    cout << "=== Simulation Timeline ===\n";
+    for (const auto& entry : timeline) {
+        cout << "Time: " << entry.time << " | Job: " << entry.job << "\n";
+
+        if (!entry.resource.empty()) {
+            cout << "  Resources in use:\n";
+            for (const auto& res : entry.resource) {
+                cout << "    - Resource ID: " << res.id
+                    << ", Ceiling Priority: " << res.ceilingPriority
+                    << ", Is Held: " << (res.isHeld ? "Yes" : "No")
+                    << ", Held By: " << (res.isHeld ? to_string(res.heldBy) : "None")
+                    << "\n";
+            }
+        }
+        else {
+            cout << "  No resources used.\n";
+        }
+
+        cout << "-----------------------------\n";
+    }
+}
+*/
+void Inheritance::displayTimeline() {
+    std::string fontPath = "C:\\Fonts\\arial.ttf";
+    if (!std::filesystem::exists(fontPath)) {
+        std::cerr << "Font file does not exist at: " << fontPath << std::endl;
+        return;
+    }
+
+    sf::Font font;
+    if (!font.loadFromFile(fontPath)) {
+        std::cerr << "Failed to load font from: " << fontPath << std::endl;
+        return;
+    }
+
+    const int blockWidth = 40;
+    const int blockHeight = 60;
+    const int spacing = 2;
+    const int maxTimelineSteps = std::min<size_t>(1000, timeline.size());//max timeline size of 1000
+    const int stepsPerLine = 100;
+    const int marginLeft = 50;
+    const int marginTop = 80;
+
+    const int blocksPerLine = std::min(stepsPerLine, static_cast<int>(maxTimelineSteps));
+    const int lines = (maxTimelineSteps + stepsPerLine - 1) / stepsPerLine;
+
+    const int windowWidth = blocksPerLine * (blockWidth + spacing) + marginLeft * 2;
+    const int windowHeight = lines * (blockHeight + 60) + marginTop * 2;
+
+    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Inheritance Simulation Timeline");
+
+    //task tracking
+    std::map<std::string, sf::Color> resourceColors;
+    std::vector<sf::Color> colors = {
+        sf::Color::Red, sf::Color::Green, sf::Color::Blue,
+        sf::Color::Yellow, sf::Color::Magenta, sf::Color::Cyan,
+        sf::Color(255, 165, 0),   // Orange
+        sf::Color(128, 0, 128),   // Purple
+        sf::Color(0, 128, 128),   // Teal
+        sf::Color(210, 105, 30),  // DBrown
+        sf::Color(75, 0, 130),    // Indigo
+        sf::Color(60, 179, 113),  // LGreen
+        sf::Color(255, 105, 180), // HotPink
+        sf::Color(47, 79, 79),    // DGray
+        sf::Color(255, 215, 0)    // Gold
+    };
+    int colorIndex = 0;
+
+    //resource tracking
+    std::map<int, sf::Color> resourceIDColors; // Resource ID to Color
+    std::map<int, std::string> resourceNames;  // Optional: ID to readable name
+
+    // Assign each resource a color
+    for (const auto& entry : timeline) {
+        for (const auto& res : entry.resource) {
+            if (resourceIDColors.find(res.id) == resourceIDColors.end()) {
+                resourceIDColors[res.id] = colors[colorIndex++ % colors.size()];
+                resourceNames[res.id] = "R" + std::to_string(res.id);
+            }
+        }
+    }
+
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        window.clear(sf::Color::White);
+
+        for (int i = 0; i < maxTimelineSteps; ++i) {
+            int row = i / stepsPerLine;
+            int col = i % stepsPerLine;
+
+            std::string entry = timeline[i].job; // Get job from the timeline entry (adjust as needed)
+
+            float x = marginLeft + col * (blockWidth + spacing);
+            float y = marginTop + row * (blockHeight + 60);
+
+            sf::RectangleShape block(sf::Vector2f(blockWidth, blockHeight));
+            block.setPosition(x, y);
+
+            // Assign a color for each job or resource
+            if (resourceColors.find(entry) == resourceColors.end()) {
+                resourceColors[entry] = colors[colorIndex++ % colors.size()];
+            }
+            block.setFillColor(resourceColors[entry]);
+
+            //draw task block
+            window.draw(block);
+
+            // Draw small dots above the task block for each held resource
+            int dotOffset = 0;
+            for (const auto& res : timeline[i].resource) {
+                int entryTaskID = std::stoi(entry.substr(1));  // Remove 'T' and convert to int
+                if (res.isHeld && res.heldBy == entryTaskID) {
+                    sf::CircleShape dot(4);
+                    dot.setFillColor(resourceIDColors[res.id]);
+                    float dotX = x + dotOffset * 10;
+                    float dotY = y - 10;
+                    dot.setPosition(dotX, dotY);
+                    window.draw(dot);
+
+                    dotOffset++;
+                }
+            }
+
+            sf::Text text(entry, font, 12);
+            text.setFillColor(sf::Color::Black);
+            text.setPosition(x, y + blockHeight + 2);
+            window.draw(text);
+        }
+
+        // Draw horizontal timeline lines and ticks
+        for (int row = 0; row < lines; ++row) {
+            float y = marginTop + row * (blockHeight + 60) + blockHeight + 25;
+            float startX = marginLeft - 10;
+            float endX = marginLeft + blocksPerLine * (blockWidth + spacing);
+
+            // Draw horizontal timeline line
+            sf::Vertex line[] = {
+                sf::Vertex(sf::Vector2f(startX, y), sf::Color::Black),
+                sf::Vertex(sf::Vector2f(endX, y), sf::Color::Black)
+            };
+            window.draw(line, 2, sf::Lines);
+
+            // Draw arrows
+            if (row == 0) {
+                sf::CircleShape leftArrow(5, 3);
+                leftArrow.setRotation(270);
+                leftArrow.setPosition(startX, y + 5);
+                leftArrow.setFillColor(sf::Color::Black);
+                window.draw(leftArrow);
+            }
+
+            if (row == lines - 1) {
+                sf::CircleShape rightArrow(5, 3);
+                rightArrow.setRotation(90);
+                rightArrow.setPosition(endX + 8, y - 5);
+                rightArrow.setFillColor(sf::Color::Black);
+                window.draw(rightArrow);
+            }
+
+            // Draw time unit ticks
+            for (int step = 0; step <= stepsPerLine && (row * stepsPerLine + step) < maxTimelineSteps; ++step) {
+                float tickX = marginLeft + step * (blockWidth + spacing);
+                sf::Vertex tick[] = {
+                    sf::Vertex(sf::Vector2f(tickX, y - 5), sf::Color::Black),
+                    sf::Vertex(sf::Vector2f(tickX, y + 5), sf::Color::Black)
+                };
+                window.draw(tick, 2, sf::Lines);
+
+                if ((step + row * stepsPerLine) % 5 == 0) {
+                    sf::Text label(std::to_string(step + row * stepsPerLine), font, 12);
+                    label.setFillColor(sf::Color::Black);
+                    label.setPosition(tickX - 5, y + 10);
+                    window.draw(label);
+                }
+            }
+        }
+
+        // Combined Legend Block (Tasks + Resources)
+        float legendStartY = marginTop + lines * (blockHeight + 60) + 30;
+        float legendX = marginLeft;
+        float legendBlockSize = 15;
+        float textOffsetX = legendBlockSize + 5;
+        int maxEntriesPerRow = 5;
+        float entrySpacingX = 50;
+        float entrySpacingY = 25;
+
+        int count = 0;
+
+        // Draw Task Legend
+        for (const auto& [taskName, color] : resourceColors) {
+            float x = legendX + (count % maxEntriesPerRow) * entrySpacingX;
+            float y = legendStartY + (count / maxEntriesPerRow) * entrySpacingY;
+
+            sf::RectangleShape colorBox(sf::Vector2f(legendBlockSize, legendBlockSize));
+            colorBox.setPosition(x, y);
+            colorBox.setFillColor(color);
+            window.draw(colorBox);
+
+            sf::Text label(taskName, font, 14);
+            label.setFillColor(sf::Color::Black);
+            label.setPosition(x + textOffsetX, y - 2);
+            window.draw(label);
+
+            count++;
+        }
+
+        // Compute where to start the resource legend (below the last row of the task legend)
+        int taskLegendRows = (count + maxEntriesPerRow - 1) / maxEntriesPerRow;
+        float resourceLegendStartY = legendStartY + taskLegendRows * entrySpacingY + 10;
+
+        int rcount = 0;
+        for (const auto& [resID, color] : resourceIDColors) {
+            float x = legendX + (rcount % maxEntriesPerRow) * entrySpacingX;
+            float y = resourceLegendStartY + (rcount / maxEntriesPerRow) * entrySpacingY;
+
+            sf::RectangleShape colorBox(sf::Vector2f(legendBlockSize, legendBlockSize));
+            colorBox.setPosition(x, y);
+            colorBox.setFillColor(color);
+            window.draw(colorBox);
+
+            sf::Text label("R" + std::to_string(resID), font, 14);
+            label.setFillColor(sf::Color::Black);
+            label.setPosition(x + textOffsetX, y - 2);
+            window.draw(label);
+
+            rcount++;
+        }
+        window.display();
+    }
+}
+
