@@ -91,7 +91,7 @@ int main(){
         else {
             cout << "Some tasks are still running.\n";
         }
-       // inheritance.displayTimeline(); //display visual
+        inheritance.displayTimeline(); //display visual
     }
     else
         cout << "Selected protocol with resource sharing not yet implemented.\n";

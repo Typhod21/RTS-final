@@ -248,7 +248,7 @@ void Scheduler::generateTimeline()
                         minDeadline = nextDeadline[i];
                         runningTask = i;
                     }
-                    else if (nextDeadline[i] == minDeadline)
+                    else if (nextDeadline[i] == minDeadline &&remaining[previousTask]>0)
                     {
                         runningTask = previousTask;
                     }
@@ -264,7 +264,7 @@ void Scheduler::generateTimeline()
                         minSlack = slack;
                         runningTask = i;
                     }
-                    else if (slack == minSlack)
+                    else if (slack == minSlack && remaining[previousTask] > 0)
                     {
                         runningTask = previousTask;
                     }
@@ -306,7 +306,7 @@ void Scheduler::displayTimeline() {
     const int blockHeight = 50;
     const int spacing = 0;
     const int maxTimelineSteps = std::min<size_t>(1000, timeline.size());
-    const int stepsPerLine = 100;
+    const int stepsPerLine = 50;
     const int marginLeft = 50;
     const int marginTop = 80;
 
@@ -746,30 +746,7 @@ Resource& Inheritance::getResourceById(const int& id) {
     cout << "Invalid Resource ID: " << id << endl;
     throw runtime_error("Invalid Resource ID");
 }
-/*
-void Inheritance::displayTimeline() {
-    cout << "=== Simulation Timeline ===\n";
-    for (const auto& entry : timeline) {
-        cout << "Time: " << entry.time << " | Job: " << entry.job << "\n";
 
-        if (!entry.resource.empty()) {
-            cout << "  Resources in use:\n";
-            for (const auto& res : entry.resource) {
-                cout << "    - Resource ID: " << res.id
-                    << ", Ceiling Priority: " << res.ceilingPriority
-                    << ", Is Held: " << (res.isHeld ? "Yes" : "No")
-                    << ", Held By: " << (res.isHeld ? to_string(res.heldBy) : "None")
-                    << "\n";
-            }
-        }
-        else {
-            cout << "  No resources used.\n";
-        }
-
-        cout << "-----------------------------\n";
-    }
-}
-*/
 void Inheritance::displayTimeline() {
     std::string fontPath = "C:\\Fonts\\arial.ttf";
     if (!std::filesystem::exists(fontPath)) {
@@ -787,9 +764,9 @@ void Inheritance::displayTimeline() {
     const int blockHeight = 60;
     const int spacing = 2;
     const int maxTimelineSteps = std::min<size_t>(1000, timeline.size());//max timeline size of 1000
-    const int stepsPerLine = 100;
+    const int stepsPerLine = 50;
     const int marginLeft = 50;
-    const int marginTop = 80;
+    const int marginTop = 100;
 
     const int blocksPerLine = std::min(stepsPerLine, static_cast<int>(maxTimelineSteps));
     const int lines = (maxTimelineSteps + stepsPerLine - 1) / stepsPerLine;
