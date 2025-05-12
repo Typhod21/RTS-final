@@ -80,6 +80,7 @@ int main(){
             if (scheduler.runOPA())
                 scheduler.generateTimeline();
         }
+        scheduler.displayTimeline();// display the timeline
     }
     else if (choice == CHOICE_PIP || choice == CHOICE_OCPP || choice == CHOICE_ICPP){
 		Inheritance inheritance(jobs, numResources, choice);

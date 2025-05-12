@@ -34,6 +34,7 @@ TEST_CASE("Scheduler Tests DM")
     REQUIRE(utilization == Approx(0.909).epsilon(0.01));
     REQUIRE(scheduler.runRMDMTest(scheduler.tasks_) == true);
     scheduler.generateTimeline();
+    scheduler.displayTimeline();
 }
 
 TEST_CASE("Scheduler Tests EDF")
@@ -53,12 +54,14 @@ TEST_CASE("Scheduler Tests EDF")
     REQUIRE(utilization == Approx(0.897).epsilon(0.01));
     REQUIRE(scheduler.runEDFLSTTest() == true);
     scheduler.generateTimeline();
+    scheduler.displayTimeline();
 
     Scheduler scheduler2(tasks2, CHOICE_EDF);
     double utilization2 = scheduler2.computeUtilization();
     REQUIRE(utilization2 == Approx(1.058).epsilon(0.01));
     REQUIRE(scheduler2.runEDFLSTTest() == true);
     scheduler2.generateTimeline();
+    scheduler2.displayTimeline();
 }
 
 TEST_CASE("Scheduler Tests LST")
@@ -76,6 +79,7 @@ TEST_CASE("Scheduler Tests LST")
     REQUIRE(scheduler.runEDFLSTTest() == true);
 
     scheduler.generateTimeline();
+    scheduler.displayTimeline();
 }
 
 TEST_CASE("Scheduler Tests PIP")
