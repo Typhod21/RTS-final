@@ -12,11 +12,10 @@ TEST_CASE("Scheduler Tests RM")
         {3, 4, 20, 20}};
 
     Scheduler scheduler(tasks, CHOICE_RM);
-
     double utilization = scheduler.computeUtilization();
     REQUIRE(utilization == Approx(0.823).epsilon(0.01));
     REQUIRE(scheduler.runRMDMTest(scheduler.tasks_) == true);
-    scheduler.setPriority();
+   
     scheduler.generateTimeline();
     scheduler.displayTimeline();
 
@@ -34,7 +33,6 @@ TEST_CASE("Scheduler Tests DM")
     double utilization = scheduler.computeUtilization();
     REQUIRE(utilization == Approx(0.909).epsilon(0.01));
     REQUIRE(scheduler.runRMDMTest(scheduler.tasks_) == true);
-    scheduler.setPriority();
     scheduler.generateTimeline();
 }
 

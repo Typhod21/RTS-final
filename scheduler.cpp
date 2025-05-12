@@ -80,6 +80,7 @@ void Scheduler::setPriority()
 
 bool Scheduler::runRMDMTest(std::vector<Task> taskSet)
 {
+	setPriority();
     cout << "\nRunning RM/DM schedulability tests...\n";
     double utilization = computeUtilization();
     double bound = taskSet.size() * (pow(2, 1.0 / taskSet.size()) - 1);
@@ -130,7 +131,7 @@ bool Scheduler::runRMDMTest(std::vector<Task> taskSet)
             cout << "Task " << task.id << " is schedulable with response time: " << responseTime << "\n\n";
         }
     }
-
+	
     return schedulable;
 }
 

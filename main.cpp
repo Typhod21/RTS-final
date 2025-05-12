@@ -26,15 +26,16 @@ int main(){
         cout << "Invalid number of tasks. Exiting.\n";
         return 1;
     }
-	int numResources;
+    int numResources;
     if (choice == CHOICE_PIP || choice == CHOICE_OCPP || choice == CHOICE_ICPP) {
 		cout << "Enter the number of resources: ";
 		cin >> numResources;
+        if (numResources <= 0) {
+            cout << "Invalid number of resources. Exiting.\n";
+            return 1;
+        }
     }
-	if (numResources <= 0){
-		cout << "Invalid number of resources. Exiting.\n";
-		return 1;
-	}
+	
     // Vector for holding tasks
     vector<Task> tasks;
 	vector<Job> jobs;
@@ -68,10 +69,8 @@ int main(){
     if (choice == CHOICE_RM || choice == CHOICE_DM || choice == CHOICE_EDF || choice == CHOICE_LST || choice == CHOICE_ARB_DEADLINE) {
         Scheduler scheduler(tasks, choice);
         if (choice == CHOICE_RM || choice == CHOICE_DM){
-            if (scheduler.runRMDMTest(scheduler.tasks_)){
-                scheduler.setPriority();
+            if (scheduler.runRMDMTest(scheduler.tasks_))
                 scheduler.generateTimeline();
-            }
         }
         else if (choice == CHOICE_EDF || choice == CHOICE_LST){
             if (scheduler.runEDFLSTTest())
