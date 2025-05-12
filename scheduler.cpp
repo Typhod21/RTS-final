@@ -2,6 +2,9 @@
 #include <numeric> // Add this include for std::lcm
 #include <algorithm>
 
+//graphics
+#include <SFML/Graphics.hpp>
+
 using namespace std;
 Scheduler::Scheduler()
 {
@@ -281,6 +284,66 @@ void Scheduler::generateTimeline()
         }
     }
     std::cout << "|\n";
+}
+
+void Scheduler::displayTimeline(){
+    const int blockWidth = 20;   // width of each time unit block
+    const int blockHeight = 50;  // height of each block
+    const int spacing = 2;       // space between blocks
+    const int windowHeight = blockHeight + 100;
+    const int windowWidth = (blockWidth + spacing) * timeline.size() + 100;
+
+    sf::RenderWindow window(sf::VideoMode(windowWidth, windowHeight), "Scheduler Timeline");
+
+    // Define colors for each task ID
+    std::map<std::string, sf::Color> taskColors;
+    int colorIndex = 0;
+    std::vector<sf::Color> colors = {
+        sf::Color::Red, sf::Color::Green, sf::Color::Blue,
+        sf::Color::Yellow, sf::Color::Magenta, sf::Color::Cyan,
+        sf::Color(255, 165, 0), // Orange
+        sf::Color(128, 0, 128), // Purple
+        sf::Color(0, 128, 128), // Teal
+    };
+
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        window.clear(sf::Color::White);
+
+        for (size_t i = 0; i < timeline.size(); ++i)
+        {
+            std::string entry = timeline[i].substr(1); // remove '|'
+
+            sf::RectangleShape block(sf::Vector2f(blockWidth, blockHeight));
+            block.setPosition(50 + i * (blockWidth + spacing), 50);
+
+            if (entry == "ID")
+            {
+                block.setFillColor(sf::Color::Black);
+            }
+            else
+            {
+                // Assign a color if this is the first time we see this task
+                if (taskColors.find(entry) == taskColors.end())
+                {
+                    taskColors[entry] = colors[colorIndex % colors.size()];
+                    colorIndex++;
+                }
+                block.setFillColor(taskColors[entry]);
+            }
+
+            window.draw(block);
+        }
+
+        window.display();
+    }
 }
 
 bool Scheduler::runOPA()

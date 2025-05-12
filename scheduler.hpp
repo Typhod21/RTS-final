@@ -6,7 +6,6 @@
 // // Task set up
 // // task|WCET|Period|Deadline| for non resource sharing protocols
 // // task|ReleaseTime|WCET|Period|Deadline|Priority|Critical Section| for resource sharing protocols
-
 #ifndef SCHEDULER_HPP
 #define SCHEDULER_HPP
 using namespace std;
@@ -20,6 +19,9 @@ using namespace std;
 #include <iomanip>
 #include <queue>
 #include <unordered_map>
+
+
+
 
 #define CHOICE 0
 #define CHOICE_RM 1
@@ -53,6 +55,9 @@ public:
     void generateTimeline();
     double computeUtilization() const;
     int computeHyperperiod() const;
+
+    void displayTimeline();
+
     std::vector<Task> tasks_;
 	std::vector<string> timeline;
 

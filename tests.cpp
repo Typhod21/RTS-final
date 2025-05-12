@@ -18,6 +18,8 @@ TEST_CASE("Scheduler Tests RM")
     REQUIRE(scheduler.runRMDMTest(scheduler.tasks_) == true);
     scheduler.setPriority();
     scheduler.generateTimeline();
+    scheduler.displayTimeline();
+
 }
 TEST_CASE("Scheduler Tests DM")
 {
