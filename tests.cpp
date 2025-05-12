@@ -158,3 +158,16 @@ TEST_CASE("Scheduler Tests OCPP2") {
     Inheritance.displayTimeline();
 }
 
+TEST_CASE("Scheduler Tests Arb Deadline")
+{
+    // id WCET period deadline;
+    vector<Task> tasks = {
+        {1, 52, 100, 110},
+        {2, 52, 140, 154} };
+
+
+    Scheduler scheduler(tasks, CHOICE_ARB_DEADLINE);
+
+    scheduler.runOPA();
+    scheduler.generateTimeline();
+}
