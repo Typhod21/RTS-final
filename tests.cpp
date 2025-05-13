@@ -170,4 +170,5 @@ TEST_CASE("Scheduler Tests Arb Deadline")
 
     scheduler.runOPA();
     scheduler.generateTimeline();
+    scheduler.displayTimeline();
 }
